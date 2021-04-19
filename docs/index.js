@@ -65,48 +65,52 @@ function initDragAndDrop() {
 }
 
 function initTouch() {
-    const draggableItemsContainer = document.querySelector('ul');
+    // Instead of adding the eventListeners to the parent ul Element, they are added to the single li Elements
+    // This is, because otherwise it would be able to drag the whole ul Element
+    //const draggableItemsContainer = document.querySelector('ul');
+    const draggableItems = document.getElementsByTagName('li');
     let initialX = 0;
     let initialY = 0;
     let lastX = 0;
     let lastY = 0;
 
-    draggableItemsContainer.addEventListener('touchstart', (e) => {
-        initialX = e.touches[0].clientX;
-        initialY = e.touches[0].clientY;
-        e.target.classList.add('dragged');
-    });
-    draggableItemsContainer.addEventListener('touchmove', (e) => {
-        const x = e.touches[0].clientX - initialX;
-        const y = e.touches[0].clientY - initialY;
-        lastX = e.touches[0].clientX;
-        lastY = e.touches[0].clientY;
-        e.target.style.transform = "translate(" + x + "px, " + y + "px)";
-
-        const elementList = document.elementsFromPoint(lastX, lastY);
-        if(elementList.length !== 4){
-            if(!elementList[1].classList.contains('dragover')){
-                elementList[1].classList.add('dragover');
+    for(i=0;i<draggableItems.length;i++){
+        draggableItems[i].addEventListener('touchstart', (e) => {
+            initialX = e.touches[0].clientX;
+            initialY = e.touches[0].clientY;
+            e.target.classList.add('dragged');
+        });
+        draggableItems[i].addEventListener('touchmove', (e) => {
+            const x = e.touches[0].clientX - initialX;
+            const y = e.touches[0].clientY - initialY;
+            lastX = e.touches[0].clientX;
+            lastY = e.touches[0].clientY;
+            e.target.style.transform = "translate(" + x + "px, " + y + "px)";
+    
+            const elementList = document.elementsFromPoint(lastX, lastY);
+            if(elementList.length !== 4){
+                if(!elementList[1].classList.contains('dragover')){
+                    elementList[1].classList.add('dragover');
+                }
+            } else {
+                let list = document.getElementsByClassName('dragover');
+                if(list.length > 0){
+                    list[0].classList.remove('dragover');
+                }
             }
-        } else {
-            let list = document.getElementsByClassName('dragover');
-            //console.log(list);
-            if(list.length > 0){
-                list[0].classList.remove('dragover');
+        });
+        draggableItems[i].addEventListener('touchend', (e) => {
+            const elementList = document.elementsFromPoint(lastX, lastY);
+            if (elementList.length > 1 && elementList[1].hasAttribute('draggable')) {
+                // die swapItems Funktion wurde bereits in Aufgabe 1b von Ihnen erstellt
+                swapItems(e.target.dataset.index, elementList[1].dataset.index);
             }
-        }
-    });
-    draggableItemsContainer.addEventListener('touchend', (e) => {
-        const elementList = document.elementsFromPoint(lastX, lastY);
-        if (elementList.length > 1 && elementList[1].hasAttribute('draggable')) {
-            // die swapItems Funktion wurde bereits in Aufgabe 1b von Ihnen erstellt
-            swapItems(e.target.dataset.index, elementList[1].dataset.index);
-        }
-        //e.target.style.transform = "translate(0px, 0px)";
-        e.target.style.transform = "";
-        e.target.classList.remove('dragged');
-        elementList[1].classList.remove('dragover');
-    });
+            //e.target.style.transform = "translate(0px, 0px)";
+            e.target.style.transform = "";
+            e.target.classList.remove('dragged');
+            elementList[1].classList.remove('dragover');
+        });
+    }
 }
 
 // check if javascript gets called on mobile
@@ -120,7 +124,6 @@ function detectMob() {
         /BlackBerry/i,
         /Windows Phone/i
     ];
-
     return toMatch.some((toMatchItem) => {
         return navigator.userAgent.match(toMatchItem);
     });
